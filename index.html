@@ -58,7 +58,6 @@
             esriTerrain,
         }
         const basemapControl = new BasemapControl({ basemaps: baseLayers, initialBasemap: "osmHot" });
-        map.addControl(basemapControl, 'top-right');
         const map = new maplibregl.Map({
             container: 'map',
             zoom: 12,
