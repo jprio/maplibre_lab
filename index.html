@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>3D Terrain</title>
     <meta property="og:description" content="Go beyond hillshade and show elevation in actual 3D." />
@@ -11,108 +12,119 @@
     <script src="https://unpkg.com/maplibre-basemaps@0.0.6/dist/maplibre-basemaps.js"></script>
 
     <style>
-        body { margin: 0; padding: 0; }
-        html, body, #map { height: 100%; }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body,
+        #map {
+            height: 100%;
+        }
     </style>
 </head>
+
 <body>
-<div id="map"></div>
-<script>
-    const osm = {
-    name: "Open Street Map",
-    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-    maxzoom: 18,
-    attribution: 'osm'
-}
+    <div id="map"></div>
+    <script>
+        const osm = {
+            name: "Open Street Map",
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            maxzoom: 18,
+            attribution: 'osm'
+        }
 
-const osmHot = {
-    name: "OSM HOT",
-    tiles: ['https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'],
-}
+        const osmHot = {
+            name: "OSM HOT",
+            tiles: ['https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'],
+        }
 
-const osmCycle = {
-    name: "OSM Cycle",
-    tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png'],
-}
+        const osmCycle = {
+            name: "OSM Cycle",
+            tiles: ['https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png'],
+        }
 
-const esriTerrain = {
-    name: "Esri Terrain",
-    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
-    maxzoom: 13,
-    attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
-}
-const baseLayers = {
-    osm,
-    osmHot,
-    osmCycle,
-    esriTerrain,
-}
-const basemapControl = new BasemapControl({ basemaps: baseLayers, initialBasemap: "osmHot"  });
-map.addControl(basemapControl, 'top-right');
-    const map = new maplibregl.Map({
-        container: 'map',
-        zoom: 12,
-        center: [11.39085, 47.27574],
-        pitch: 70,
-        hash: true,
-        style: {
-            version: 8,
-            sources: {
-                osm: {
-                    type: 'raster',
-                    tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    attribution: '&copy; OpenStreetMap Contributors',
-                    maxzoom: 19
+        const esriTerrain = {
+            name: "Esri Terrain",
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
+            maxzoom: 13,
+            attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+        }
+        const baseLayers = {
+            osm,
+            osmHot,
+            osmCycle,
+            esriTerrain,
+        }
+        const basemapControl = new BasemapControl({ basemaps: baseLayers, initialBasemap: "osmHot" });
+        map.addControl(basemapControl, 'top-right');
+        const map = new maplibregl.Map({
+            container: 'map',
+            zoom: 12,
+            center: [11.39085, 47.27574],
+            pitch: 70,
+            hash: true,
+            style: {
+                version: 8,
+                sources: {
+                    osm: {
+                        type: 'raster',
+                        tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution: '&copy; OpenStreetMap Contributors',
+                        maxzoom: 19
+                    },
+                    // Use a different source for terrain and hillshade layers, to improve render quality
+                    terrainSource: {
+                        type: 'raster-dem',
+                        url: 'https://tiles.mapterhorn.com/tilejson.json'
+                    },
+                    hillshadeSource: {
+                        type: 'raster-dem',
+                        url: 'https://tiles.mapterhorn.com/tilejson.json'
+                    }
                 },
-                // Use a different source for terrain and hillshade layers, to improve render quality
-                terrainSource: {
-                    type: 'raster-dem',
-                    url: 'https://tiles.mapterhorn.com/tilejson.json'
+                layers: [
+                    {
+                        id: 'osm',
+                        type: 'raster',
+                        source: 'osm'
+                    },
+                    {
+                        id: 'hills',
+                        type: 'hillshade',
+                        source: 'hillshadeSource',
+                        layout: { visibility: 'visible' },
+                        paint: { 'hillshade-shadow-color': '#473B24' }
+                    }
+                ],
+                terrain: {
+                    source: 'terrainSource',
+                    exaggeration: 1
                 },
-                hillshadeSource: {
-                    type: 'raster-dem',
-                    url: 'https://tiles.mapterhorn.com/tilejson.json'
-                }
+                sky: {}
             },
-            layers: [
-                {
-                    id: 'osm',
-                    type: 'raster',
-                    source: 'osm'
-                },
-                {
-                    id: 'hills',
-                    type: 'hillshade',
-                    source: 'hillshadeSource',
-                    layout: {visibility: 'visible'},
-                    paint: {'hillshade-shadow-color': '#473B24'}
-                }
-            ],
-            terrain: {
+            maxZoom: 18,
+            maxPitch: 85
+        });
+        map.addControl(basemapControl, 'top-right');
+
+        map.addControl(
+            new maplibregl.NavigationControl({
+                visualizePitch: true,
+                showZoom: true,
+                showCompass: true
+            })
+        );
+
+        map.addControl(
+            new maplibregl.TerrainControl({
                 source: 'terrainSource',
                 exaggeration: 1
-            },
-            sky: {}
-        },
-        maxZoom: 18,
-        maxPitch: 85
-    });
-
-    map.addControl(
-        new maplibregl.NavigationControl({
-            visualizePitch: true,
-            showZoom: true,
-            showCompass: true
-        })
-    );
-
-    map.addControl(
-        new maplibregl.TerrainControl({
-            source: 'terrainSource',
-            exaggeration: 1
-        })
-    );
-</script>
+            })
+        );
+    </script>
 </body>
+
 </html>
